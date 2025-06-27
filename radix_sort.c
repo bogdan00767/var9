@@ -26,6 +26,7 @@ void radixSort(int* arr, int n);
 int getMax(int* arr, int n);
 void countSort(int* arr, int n, int exp);
 int isValidNumber(const char* input);
+void addTxtExtensionIfMissing(char* fileName);
 int fileExists(const char* filename);
 int isValidFileName(const char* name);
 void ensureCapacity(NumberArray* arr, int minCapacity);
@@ -91,6 +92,7 @@ void sortIfNeeded(NumberArray* arr) {
 
         printf("Введите имя файла для сохранения неотсортированных чисел: ");
         scanf("%99s", unsortedFilename);
+        addTxtExtensionIfMissing(unsortedFilename);
 
         saveNumsToFile(arr, unsortedFilename);
         printf("\nСгенерированные числа сохранены в файл \"%s\"\n", unsortedFilename);
@@ -104,6 +106,7 @@ void sortIfNeeded(NumberArray* arr) {
         if (sortChoice == 'y' || sortChoice == 'Y') {
             printf("Введите имя файла для сохранения отсортированных чисел: ");
             scanf("%99s", sortedFilename);
+            addTxtExtensionIfMissing(sortedFilename);
 
             radixSort(arr->data, arr->count);
             printf("\nОтсортированные числа:\n");
@@ -272,6 +275,12 @@ int isValidNumber(const char* input) {
     char* endptr;
     strtol(input, &endptr, 10);
     return (*endptr == '\0');
+}
+
+void addTxtExtensionIfMissing(char* fileName) {
+    if (!strchr(fileName, '.')) {
+        strcat(fileName, ".txt");
+    }
 }
 
 int fileExists(const char* filename) {
