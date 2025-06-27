@@ -26,6 +26,7 @@ void radixSort(int* arr, int n);
 int getMax(int* arr, int n);
 void countSort(int* arr, int n, int exp);
 int isValidNumber(const char* input);
+void clearScreen();
 void addTxtExtensionIfMissing(char* fileName);
 int fileExists(const char* filename);
 int isValidFileName(const char* name);
@@ -44,6 +45,7 @@ int main() {
     arr.capacity = INITIAL_CAPACITY;
 
     do {
+        clearScreen();
         showMainMenu();
         printf("Ваш выбор: ");
         scanf(" %c", &choice);
@@ -90,6 +92,7 @@ void sortIfNeeded(NumberArray* arr) {
         char unsortedFilename[MAX_FILENAME_LENGTH];
         char sortedFilename[MAX_FILENAME_LENGTH];
 
+        clearScreen();
         printf("Введите имя файла для сохранения неотсортированных чисел: ");
         scanf("%99s", unsortedFilename);
         addTxtExtensionIfMissing(unsortedFilename);
@@ -132,6 +135,7 @@ void showMainMenu() {
 }
 
 void getNums(NumberArray* arr) {
+    clearScreen();
     printf("Введите числа от -10000 до 10000 (для завершения введите 'end'):\n");
     
     arr->count = 0;
@@ -164,6 +168,7 @@ void getNums(NumberArray* arr) {
 }
 
 void autoGen(NumberArray* arr) {
+    clearScreen();
     int min, max, n;
     
     printf("Введите минимальное значение: ");
@@ -275,6 +280,10 @@ int isValidNumber(const char* input) {
     char* endptr;
     strtol(input, &endptr, 10);
     return (*endptr == '\0');
+}
+
+void clearScreen() {
+    system("cls || clear");
 }
 
 void addTxtExtensionIfMissing(char* fileName) {
