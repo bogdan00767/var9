@@ -194,7 +194,7 @@ void autoGen(NumberArray* arr) {
     printf("Введите количество чисел: ");
     scanf("%d", &n);
     
-    if (min > max) {  // Если минимум больше максимума, меняем местами
+    if (min > max) {
         int temp = min;
         min = max;
         max = temp;
