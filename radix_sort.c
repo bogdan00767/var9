@@ -5,7 +5,7 @@
 #include <string.h>
 #include <locale.h>
 #include <time.h>
- 
+
 #define INITIAL_CAPACITY 1000
 #define MAX_INPUT_LENGTH 20
 #define MAX_FILENAME_LENGTH 100
@@ -279,6 +279,9 @@ void countSort(int* arr, int n, int exp) {
 
 void radixSort(int* arr, int n) {
     if (n <= 1) return;  // Не нужно сортировать пустой массив или из 1 элемента
+    int iteration_count = 0;
+    // Измеряем время до начала сортировки
+    clock_t start_time = clock();
 
     // 1. Разделяем отрицательные и положительные числа
     int* neg = (int*)malloc(n * sizeof(int));
@@ -294,18 +297,16 @@ void radixSort(int* arr, int n) {
 
     // 2. Сортируем отрицательные числа (как положительные, затем разворачиваем)
     if (neg_size > 0) {
-        // Используем getMaxAbs() и countSort() для неотрицательных
         int max_abs = getMaxAbs(neg, neg_size);
         for (int exp = 1; max_abs / exp > 0; exp *= 10) {
             countSort(neg, neg_size, exp);
+            iteration_count++;  // Увеличиваем счётчик итераций
         }
-        // Разворачиваем порядок (т.к. изначально числа были отрицательными)
         for (int i = 0; i < neg_size / 2; i++) {
             int temp = neg[i];
             neg[i] = neg[neg_size - 1 - i];
             neg[neg_size - 1 - i] = temp;
         }
-        // Возвращаем знак "-"
         for (int i = 0; i < neg_size; i++) {
             arr[i] = -neg[i];
         }
@@ -316,8 +317,8 @@ void radixSort(int* arr, int n) {
         int max_abs = getMaxAbs(pos, pos_size);
         for (int exp = 1; max_abs / exp > 0; exp *= 10) {
             countSort(pos, pos_size, exp);
+            iteration_count++;  // Увеличиваем счётчик итераций
         }
-        // Копируем их в исходный массив после отрицательных
         for (int i = 0; i < pos_size; i++) {
             arr[neg_size + i] = pos[i];
         }
@@ -325,6 +326,16 @@ void radixSort(int* arr, int n) {
 
     free(neg);
     free(pos);
+
+    // Выводим количество итераций
+    printf("Количество итераций сортировки: %d\n", iteration_count);
+
+    // Измеряем время после завершения сортировки
+    clock_t end_time = clock();
+
+    // Выводим время сортировки
+    double time_taken = ((double)(end_time - start_time)) / CLOCKS_PER_SEC;
+    printf("Время сортировки: %.6f секунд.\n", time_taken);
 }
 
 int isInteger(const char* input) {
