@@ -2,35 +2,24 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <locale.h>
-#include <time.h>
+#include <string.h>
+
+#include "radixAlg.h"
+#include "sharedFunctions.h"
+#include "numberArray.h"
 
 #define INITIAL_CAPACITY 1000
 #define MAX_INPUT_LENGTH 20
 #define MAX_FILENAME_LENGTH 100
 
-typedef struct {
-    int* data;
-    int count;
-    int capacity;
-} NumberArray;
-
 void sortIfNeeded(NumberArray* arr);
 void showMainMenu();
 void getNums(NumberArray* arr);
-void autoGen(NumberArray* arr);
 void saveNumsToFile(NumberArray* arr, const char* filename);
 void loadNumsFromFile(NumberArray* arr, const char* filename);
 void printNums(NumberArray* arr);
-void radixSort(int* arr, int n);
-int getMax(int* arr, int n);
-void countSort(int* arr, int n, int exp);
-int isInteger(const char* input);
 void clearScreen();
-void addTxtExtensionIfMissing(char* fileName);
-int fileExists(const char* filename);
-int isValidFileName(const char* name);
 void ensureCapacity(NumberArray* arr, int minCapacity);
 
 int main() {
@@ -172,34 +161,6 @@ void getNums(NumberArray* arr) {
     printf("\nВведено %d чисел.\n", arr->count);
 }
 
-void autoGen(NumberArray* arr) {
-    clearScreen();
-    int min, max, n;
-
-    printf("Введите минимальное значение: ");
-    scanf("%d", &min);
-    printf("Введите максимальное значение: ");
-    scanf("%d", &max);
-    printf("Введите количество чисел: ");
-    scanf("%d", &n);
-
-    if (min > max) {
-        int temp = min;
-        min = max;
-        max = temp;
-    }
-
-    ensureCapacity(arr, n);
-    arr->count = n;
-
-    srand(time(NULL));
-    for (int i = 0; i < n; i++) {
-        arr->data[i] = rand() % (max - min + 1) + min;
-    }
-
-    printf("\nСгенерировано %d чисел в диапазоне от %d до %d.\n", n, min, max);
-}
-
 void saveNumsToFile(NumberArray* arr, const char* filename) {
     FILE* file = fopen(filename, "w");
     if (!file) {
@@ -238,135 +199,6 @@ void printNums(NumberArray* arr) {
     printf("\n");
 }
 
-int getMaxAbs(int* arr, int n) {
-    int max_abs = abs(arr[0]);
-    for (int i = 1; i < n; i++) {
-        int current_abs = abs(arr[i]);
-        if (current_abs > max_abs) {
-            max_abs = current_abs;
-        }
-    }
-    return max_abs;
-}
-
-void countSort(int* arr, int n, int exp) {
-    int* output = (int*)malloc(n * sizeof(int));
-    int count[10] = { 0 };  // Для цифр 0-9
-
-    // Подсчет количества чисел для каждой цифры
-    for (int i = 0; i < n; i++) {
-        count[(arr[i] / exp) % 10]++;
-    }
-
-    // Преобразуем count в позиции в output[]
-    for (int i = 1; i < 10; i++) {
-        count[i] += count[i - 1];
-    }
-
-    // Строим выходной массив (идем с конца для стабильности)
-    for (int i = n - 1; i >= 0; i--) {
-        output[count[(arr[i] / exp) % 10] - 1] = arr[i];
-        count[(arr[i] / exp) % 10]--;
-    }
-
-    // Копируем output обратно в arr[]
-    for (int i = 0; i < n; i++) {
-        arr[i] = output[i];
-    }
-
-    free(output);
-}
-
-void radixSort(int* arr, int n) {
-    if (n <= 1) return;  // Не нужно сортировать пустой массив или из 1 элемента
-    int iteration_count = 0;
-    // Измеряем время до начала сортировки
-    clock_t start_time = clock();
-
-    // 1. Разделяем отрицательные и положительные числа
-    int* neg = (int*)malloc(n * sizeof(int));
-    int* pos = (int*)malloc(n * sizeof(int));
-    int neg_size = 0, pos_size = 0;
-
-    for (int i = 0; i < n; i++) {
-        if (arr[i] < 0)
-            neg[neg_size++] = -arr[i];  // Инвертируем отрицательные
-        else
-            pos[pos_size++] = arr[i];
-    }
-
-    // 2. Сортируем отрицательные числа (как положительные, затем разворачиваем)
-    if (neg_size > 0) {
-        int max_abs = getMaxAbs(neg, neg_size);
-        for (int exp = 1; max_abs / exp > 0; exp *= 10) {
-            countSort(neg, neg_size, exp);
-            iteration_count++;  // Увеличиваем счётчик итераций
-        }
-        for (int i = 0; i < neg_size / 2; i++) {
-            int temp = neg[i];
-            neg[i] = neg[neg_size - 1 - i];
-            neg[neg_size - 1 - i] = temp;
-        }
-        for (int i = 0; i < neg_size; i++) {
-            arr[i] = -neg[i];
-        }
-    }
-
-    // 3. Сортируем положительные числа
-    if (pos_size > 0) {
-        int max_abs = getMaxAbs(pos, pos_size);
-        for (int exp = 1; max_abs / exp > 0; exp *= 10) {
-            countSort(pos, pos_size, exp);
-            iteration_count++;  // Увеличиваем счётчик итераций
-        }
-        for (int i = 0; i < pos_size; i++) {
-            arr[neg_size + i] = pos[i];
-        }
-    }
-
-    free(neg);
-    free(pos);
-
-    // Выводим количество итераций
-    printf("Количество итераций сортировки: %d\n", iteration_count);
-
-    // Измеряем время после завершения сортировки
-    clock_t end_time = clock();
-
-    // Выводим время сортировки
-    double time_taken = ((double)(end_time - start_time)) / CLOCKS_PER_SEC;
-    printf("Время сортировки: %.6f секунд.\n", time_taken);
-}
-
-int isInteger(const char* input) {
-    char* endptr;
-    strtol(input, &endptr, 10);
-    return (*endptr == '\0');
-}
-
 void clearScreen() {
     system("cls || clear");
-}
-
-void addTxtExtensionIfMissing(char* fileName) {
-    if (!strchr(fileName, '.')) {
-        strcat(fileName, ".txt");
-    }
-}
-
-int fileExists(const char* filename) {
-    FILE* file = fopen(filename, "r");
-    if (file) {
-        fclose(file);
-        return 1;
-    }
-    return 0;
-}
-
-int isValidFileName(const char* name) {
-    const char* invalidChars = "\\/:*?\"<>|";
-    for (int i = 0; name[i] != '\0'; i++) {
-        if (strchr(invalidChars, name[i])) return 0;
-    }
-    return 1;
 }
