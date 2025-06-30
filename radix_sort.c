@@ -1,10 +1,11 @@
 #define _CRT_SECURE_NO_WARNINGS
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <locale.h>
 #include <time.h>
-
+ 
 #define INITIAL_CAPACITY 1000
 #define MAX_INPUT_LENGTH 20
 #define MAX_FILENAME_LENGTH 100
